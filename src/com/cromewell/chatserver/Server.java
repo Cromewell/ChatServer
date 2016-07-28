@@ -1,5 +1,7 @@
 package com.cromewell.chatserver;
 
+import com.cromewell.chatserver.logger.Logger;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -14,20 +16,29 @@ class Server{
     private ServerSocket server;
     private Socket connection;
     private static ArrayList<ServerThread> threads = new ArrayList<>(); //The list to handle threads
+    private Logger logger;
 
     Server() {
         try {
+            logger = new Logger();
+        } catch (IOException e) {
+            System.out.println("#Couldn't create logger.");
+            e.printStackTrace();
+            System.exit(1);
+        }
+        try {
             server = new ServerSocket(6565); //Create server.
         } catch (IOException e) {
-            System.out.println("#Couldn't create server...exit.");
+            logger.log("#Couldn't create server...exit.");
             System.exit(1);
         }
         while(true) { //Connect to clients and create thread for each of them.
             try {
                 connection = server.accept();
+                logger.log("#"+connection.getInetAddress().toString()+" connected.");
             } catch (IOException e) {
             }
-            ServerThread sThread = new ServerThread(connection); //Handle with the client
+            ServerThread sThread = new ServerThread(connection, logger); //Handle with the client
             sThread.setDaemon(true);
             threads.add(sThread); //Add the thread to the list.
             sThread.start();

@@ -1,5 +1,7 @@
 package com.cromewell.chatserver;
 
+import com.cromewell.chatserver.logger.Logger;
+
 import java.io.*;
 import java.net.Socket;
 
@@ -13,9 +15,11 @@ class ServerThread extends Thread{
     private Socket socket;
     private DataOutputStream out;
     private DataInputStream in;
+    private Logger logger;
 
-    ServerThread(Socket socket) {
+    ServerThread(Socket socket, Logger logger) {
         this.socket = socket;
+        this.logger = logger;
     }
 
     public void run(){
@@ -23,7 +27,7 @@ class ServerThread extends Thread{
             out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
         } catch (IOException e) {
-            System.out.println("#Couldn't get Streams.");
+            logger.log("#Couldn't get Streams.");
         }
         String line;
         while(true){
@@ -31,7 +35,7 @@ class ServerThread extends Thread{
                 Server.sendMsg(in.readUTF()); //Pass the message to send it to all clients.
 
             } catch (IOException e) {
-                System.out.println("#Client disconnected "+socket.getInetAddress());
+                logger.log("#Client disconnected "+socket.getInetAddress());
                 //client disconnected - stop thread and remove it from the thread list.
                 Server.getThreads().remove(this);
                 break;
@@ -48,7 +52,7 @@ class ServerThread extends Thread{
             out.writeUTF(msg+"\n\r");
             out.flush();
         } catch (IOException e) {
-            System.out.println("#Couldn't send message to client.");
+            logger.log("#Couldn't send message to client.");
         }
     }
 }
